@@ -68,7 +68,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
   // Voice Persona
   const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('male');
   const [selectedVoice, setSelectedVoice] = useState<VoiceName>('Fenrir');
-  const [silenceDelayMs, setSilenceDelayMs] = useState<number>(1200); // 1.2s default pause detection
+  const [silenceDelayMs, setSilenceDelayMs] = useState<number>(400); // 400ms ultra-fast turnaround after user stops speaking
 
   // Memory Modal
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState<boolean>(false);
@@ -166,8 +166,13 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
         const average = sum / dataArray.length;
         const normalized = Math.min(100, Math.round((average / 128) * 100));
 
-        // Only show volume if not muted and in listening phase
-        if (phaseRef.current === 'listening' && !isMutedRef.current) {
+        // Natural voice barge-in: If AI is speaking and user speaks, stop AI immediately and listen!
+        if (phaseRef.current === 'speaking' && !isMutedRef.current && normalized > 26) {
+          globalVoicePlayer.stop();
+          setPhase('listening');
+          phaseRef.current = 'listening';
+          setAudioLevel(normalized);
+        } else if (phaseRef.current === 'listening' && !isMutedRef.current) {
           setAudioLevel(normalized);
         } else if (phaseRef.current === 'speaking') {
           // Subtle pulse when speaking
@@ -267,8 +272,15 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        if (!sessionActiveRef.current || phaseRef.current === 'speaking' || phaseRef.current === 'thinking') {
+        if (!sessionActiveRef.current || phaseRef.current === 'thinking') {
           return;
+        }
+
+        // Natural voice barge-in: If AI is speaking, user speech stops the AI immediately!
+        if (phaseRef.current === 'speaking') {
+          globalVoicePlayer.stop();
+          setPhase('listening');
+          phaseRef.current = 'listening';
         }
 
         let interimText = '';
@@ -299,10 +311,14 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
             clearTimeout(silenceTimerRef.current);
           }
 
-          // When user pauses speaking for silenceDelayMs -> AUTO COMMIT (like ChatGPT Voice!)
+          // When user pauses speaking -> AUTO COMMIT immediately (like ChatGPT Voice!)
+          const trimmed = combinedCurrent.trim();
+          const endsWithPunctuation = trimmed.endsWith('?') || trimmed.endsWith('.') || trimmed.endsWith('!');
+          const effectiveDelay = endsWithPunctuation ? Math.min(300, silenceDelayMs) : silenceDelayMs;
+
           silenceTimerRef.current = setTimeout(() => {
             handleAutoCommitSpeech();
-          }, silenceDelayMs);
+          }, effectiveDelay);
         }
       };
 
@@ -366,10 +382,10 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
     stopSpeechRecognition();
     setPhase('thinking');
 
-    // Trigger AI response with hands-free context
+    // Trigger AI response with live voice context
     onSendMessage(
       textToSend,
-      `Live 1-on-1 Discussion (Hands-Free Voice Mode • ${voiceGender.toUpperCase()})`
+      `Live 1-on-1 Discussion (Live Voice Mode • ${voiceGender.toUpperCase()})`
     );
   };
 
@@ -387,7 +403,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
     }
   };
 
-  // 5. Speak AI response out loud, then IMMEDIATELY resume listening hands-free!
+  // 5. Speak AI response out loud, then IMMEDIATELY resume listening in live chat!
   const speakAssistantReply = (text: string) => {
     setPhase('speaking');
 
@@ -400,7 +416,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
       () => {
         // AI FINISHED SPEAKING: Seamlessly resume listening for user's next spoken words!
         if (sessionActiveRef.current) {
-          // 350ms pause to ensure speakers are silent before re-enabling mic
+          // 200ms pause to ensure speakers are silent before re-enabling mic
           setTimeout(() => {
             if (sessionActiveRef.current) {
               setPhase('listening');
@@ -408,7 +424,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
               accumulatedSpeechRef.current = '';
               startSpeechRecognition();
             }
-          }, 350);
+          }, 200);
         } else {
           setPhase('idle');
         }
@@ -539,9 +555,9 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
             <span className="font-black text-sm tracking-tight text-white flex items-center gap-1.5">
-              <span>LIVE 1-ON-1 VOICE CHAT</span>
+              <span>LIVE CHAT</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 font-semibold uppercase tracking-wider">
-                Hands-Free Duplex
+                Instant Voice
               </span>
             </span>
           </div>
@@ -622,10 +638,10 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
 
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Hands-Free Live Voice
+                Live Chat
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
-                Just tap once, then speak aloud from a distance. The AI listens, answers you immediately with voice speech, and discusses back and forth like ChatGPT without touching any buttons.
+                Speak directly with Testimony AI. It replies instantly when you finish speaking, corrects you politely if you're wrong, and talks with cool high intelligence.
               </p>
             </div>
 
@@ -808,7 +824,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
                       ? 'Listening'
                       : phase === 'thinking'
                       ? 'Thinking'
-                      : 'Interrupt'}
+                      : 'Speaking'}
                   </span>
                 </div>
               </button>
@@ -875,18 +891,6 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
               >
                 {isMuted ? <MicOff className="w-5 h-5 text-amber-400" /> : <Mic className="w-5 h-5 text-emerald-400" />}
               </button>
-
-              {/* Interrupt / Stop Speaking Button */}
-              {phase === 'speaking' && (
-                <button
-                  type="button"
-                  onClick={handleInterruptSpeaking}
-                  className="px-4 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
-                >
-                  <VolumeX className="w-4 h-4" />
-                  <span>Interrupt</span>
-                </button>
-              )}
 
               {/* End Call Button (Red Phone Hang Up) */}
               <button
@@ -992,6 +996,28 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
             <div className="grid grid-cols-3 gap-1.5">
               <button
                 type="button"
+                onClick={() => setSilenceDelayMs(400)}
+                className={`py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  silenceDelayMs === 400
+                    ? 'bg-purple-600/30 border-purple-500 text-white'
+                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                }`}
+              >
+                Instant (0.4s)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSilenceDelayMs(600)}
+                className={`py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  silenceDelayMs === 600
+                    ? 'bg-purple-600/30 border-purple-500 text-white'
+                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                }`}
+              >
+                Snappy (0.6s)
+              </button>
+              <button
+                type="button"
                 onClick={() => setSilenceDelayMs(900)}
                 className={`py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
                   silenceDelayMs === 900
@@ -999,29 +1025,7 @@ export const LiveChatView: React.FC<LiveChatViewProps> = ({
                     : 'bg-slate-900 border-slate-800 text-slate-400'
                 }`}
               >
-                Fast (0.9s)
-              </button>
-              <button
-                type="button"
-                onClick={() => setSilenceDelayMs(1200)}
-                className={`py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                  silenceDelayMs === 1200
-                    ? 'bg-purple-600/30 border-purple-500 text-white'
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
-                }`}
-              >
-                Normal (1.2s)
-              </button>
-              <button
-                type="button"
-                onClick={() => setSilenceDelayMs(1800)}
-                className={`py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                  silenceDelayMs === 1800
-                    ? 'bg-purple-600/30 border-purple-500 text-white'
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
-                }`}
-              >
-                Relaxed (1.8s)
+                Normal (0.9s)
               </button>
             </div>
             <p className="text-[10px] text-slate-500">

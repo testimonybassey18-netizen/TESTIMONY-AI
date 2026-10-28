@@ -25,7 +25,12 @@ import {
   Zap,
   Code2,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Radio,
+  Radar as RadarIcon,
+  Crosshair,
+  Compass,
+  Cpu
 } from 'lucide-react';
 import { ScannedJobLead, scanOnlineJobsAndLeads } from '../services/geminiService';
 
@@ -40,6 +45,7 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
 }) => {
   const [leads, setLeads] = useState<ScannedJobLead[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [scanStepIndex, setScanStepIndex] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('Nigeria');
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
@@ -58,19 +64,39 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
   const [copiedPitch, setCopiedPitch] = useState<boolean>(false);
   const [copiedContact, setCopiedContact] = useState<string | null>(null);
 
-  const fetchLeads = async (countryParam = selectedCountry, catParam = selectedCategory) => {
+  // Radar Telemetry Logs
+  const scanTelemetrySteps = [
+    '🛰️ Radar Sweep Activated: Sweeping domains, registries & job boards...',
+    '🔍 Diagnosing mobile viewports, page load speeds & checkout friction...',
+    '👥 Cross-referencing decision makers, corporate emails & WhatsApp lines...',
+    '💡 Synthesizing high-converting cold pitches & calculating budget estimates...',
+    '🎯 Radar targets locked and verified!'
+  ];
+
+  const fetchLeads = async (countryParam = selectedCountry, catParam = selectedCategory, customQueryParam = customSearchQuery) => {
     setIsLoading(true);
+    setScanStepIndex(0);
+
+    // Rapid radar telemetry sweep (ticking at 90ms for instant feedback)
+    let step = 0;
+    const stepInterval = setInterval(() => {
+      step = (step + 1) % (scanTelemetrySteps.length - 1);
+      setScanStepIndex(step);
+    }, 90);
+
     try {
       const results = await scanOnlineJobsAndLeads({
         country: countryParam,
         category: catParam,
         industry: selectedIndustry,
-        customQuery: customSearchQuery,
+        customQuery: customQueryParam,
       });
       setLeads(results);
     } catch (err) {
       console.warn('Failed to load live leads:', err);
     } finally {
+      clearInterval(stepInterval);
+      setScanStepIndex(scanTelemetrySteps.length - 1);
       setIsLoading(false);
     }
   };
@@ -118,12 +144,13 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
       'Phone / WhatsApp',
       'Pitch Angle'
     ];
+
     const rows = leads.map((l) => [
       `"${l.type}"`,
       `"${l.title.replace(/"/g, '""')}"`,
       `"${l.businessName.replace(/"/g, '""')}"`,
       `"${l.country}"`,
-      `"${(l.city || '').replace(/"/g, '""')}"`,
+      `"${l.city || ''}"`,
       `"${l.industry}"`,
       `"${l.websiteUrl || ''}"`,
       `"${l.issueOrNeed.replace(/"/g, '""')}"`,
@@ -139,48 +166,97 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Testimony_Leads_${selectedCountry}_${Date.now()}.csv`);
+    link.setAttribute('download', `Testimony_Radar_Leads_${selectedCountry}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Helper to build direct WhatsApp link
+  const getWhatsAppLink = (phone?: string, businessName?: string, pitch?: string) => {
+    if (!phone) return null;
+    const cleanNumber = phone.replace(/[^0-9]/g, '');
+    const greeting = `Hello ${businessName ? businessName : ''}! I am reaching out regarding your website. ${pitch || ''}`;
+    return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(greeting)}`;
   };
 
   const failingWebsitesCount = leads.filter((l) => l.type === 'website_fix').length;
   const urgentHelpCount = leads.filter((l) => l.type === 'online_help').length;
   const remoteJobsCount = leads.filter((l) => l.type === 'remote_job').length;
 
+  const quickScanPresets = [
+    { label: '🛒 Failing Stores in Lagos', query: 'E-commerce fashion and retail stores in Lagos with slow checkout and broken mobile websites' },
+    { label: '🩺 Clinics in Abuja', query: 'Dental clinics and private hospitals in Abuja with outdated or non-mobile websites' },
+    { label: '🏨 Hotels in Port Harcourt', query: 'Hotels and resorts in Port Harcourt with no mobile booking system' },
+    { label: '💻 Remote React/Node Jobs', query: 'Remote software developer jobs in Nigeria and worldwide paying in USD' },
+    { label: '🏢 Real Estate in Lagos', query: 'Real estate agencies in Victoria Island Lagos with no WhatsApp lead capture' },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#090d16] text-slate-100 overflow-y-auto">
-      {/* Top Banner */}
-      <div className="border-b border-slate-800/80 bg-gradient-to-r from-purple-950/40 via-slate-900 to-indigo-950/40 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>ONLINE JOBS &amp; CLIENT LEAD SCANNER</span>
+    <div className="flex-1 flex flex-col h-full bg-[#080c16] text-slate-100 overflow-y-auto">
+      {/* TOP RADAR HUD BANNER */}
+      <div className="border-b border-slate-800/80 bg-gradient-to-r from-emerald-950/30 via-slate-900 to-indigo-950/40 p-4 sm:p-6 relative overflow-hidden">
+        {/* Subtle grid pattern background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-start gap-4">
+            {/* Visual Radar Screen Widget */}
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-950 border-2 border-emerald-500/40 flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(16,185,129,0.25)] overflow-hidden">
+              {/* Concentric distance rings */}
+              <div className="absolute w-3/4 h-3/4 rounded-full border border-emerald-500/20" />
+              <div className="absolute w-1/2 h-1/2 rounded-full border border-emerald-500/30" />
+              <div className="absolute w-1/4 h-1/4 rounded-full border border-emerald-500/40" />
+
+              {/* Crosshairs */}
+              <div className="absolute w-full h-[1px] bg-emerald-500/20" />
+              <div className="absolute h-full w-[1px] bg-emerald-500/20" />
+
+              {/* Sweeping Radar Beam */}
+              <div
+                className={`absolute inset-0 origin-center bg-gradient-to-tr from-emerald-500/40 via-transparent to-transparent ${
+                  isLoading ? 'animate-spin duration-700' : 'animate-spin-slow'
+                }`}
+              />
+
+              {/* Pinging Target Blips */}
+              <span className="absolute top-4 right-5 w-2 h-2 rounded-full bg-emerald-400 animate-ping shadow-[0_0_8px_rgba(52,211,153,1)]" />
+              <span className="absolute bottom-5 left-6 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="absolute top-7 left-4 w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+
+              {/* Center Beacon */}
+              <div className="relative z-10 w-3 h-3 rounded-full bg-emerald-400 border border-white shadow-sm" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Scan Failing Business Websites, Urgent Online Help &amp; Remote Jobs
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-              Discover real businesses in Nigeria, the US, the UK, and worldwide that urgently need website fixing or redesign, businesses seeking online freelance help, and verified remote jobs with direct decision-maker contact details.
-            </p>
+
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold mb-2">
+                <RadarIcon className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <span>INTELLIGENCE SCANNING RADAR</span>
+                <span className="text-[10px] text-emerald-400/80 font-mono hidden sm:inline">| 360° SWEEP ACTIVE</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Market Radar: Failing Websites &amp; High-Paying Remote Jobs
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                Tell the radar to scan anything. It scans businesses with broken, slow, or outdated websites that badly need fixing, companies seeking urgent online help, and verified remote jobs with direct decision-maker contact details.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={() => fetchLeads()}
               disabled={isLoading}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs transition flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isLoading ? 'Scanning Live...' : 'Scan Now'}</span>
+              <span>{isLoading ? 'Radar Sweeping...' : 'Re-Sweep Radar'}</span>
             </button>
 
             <button
               onClick={handleExportCSV}
               disabled={leads.length === 0}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Download all scanned business leads & jobs into CSV"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
@@ -190,81 +266,128 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
         </div>
 
         {/* Quick Metrics Bar */}
-        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800/60">
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-            <span className="text-[11px] text-slate-400 block">Total Scanned Leads</span>
-            <span className="text-lg font-black text-white">{leads.length} Active</span>
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-800/60">
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+            <span className="text-[11px] text-slate-400 block font-medium">Acquired Targets</span>
+            <span className="text-lg font-black text-white">{leads.length} Verified</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-rose-500/20">
-            <span className="text-[11px] text-rose-300 block">Failing Websites to Fix</span>
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-rose-500/25">
+            <span className="text-[11px] text-rose-300 block font-medium">Failing Websites to Fix</span>
             <span className="text-lg font-black text-rose-400">{failingWebsitesCount} High-Ticket</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-amber-500/20">
-            <span className="text-[11px] text-amber-300 block">Urgent Online Help</span>
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-amber-500/25">
+            <span className="text-[11px] text-amber-300 block font-medium">Urgent Online Help</span>
             <span className="text-lg font-black text-amber-400">{urgentHelpCount} Openings</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-emerald-500/20">
-            <span className="text-[11px] text-emerald-300 block">Verified Remote Jobs</span>
-            <span className="text-lg font-black text-emerald-400">{remoteJobsCount} Verified</span>
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-emerald-500/25">
+            <span className="text-[11px] text-emerald-300 block font-medium">Verified Remote Jobs</span>
+            <span className="text-lg font-black text-emerald-400">{remoteJobsCount} Remote</span>
           </div>
         </div>
       </div>
 
-      {/* Control Filter Bar */}
-      <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-3 sm:p-4 rounded-2xl">
+      {/* "TELL RADAR WHAT TO SCAN" COMMAND BAR & RESULTS - FULL SCREEN WIDTH */}
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 py-5 space-y-4 flex-1">
+        <div className="bg-slate-900/95 border border-slate-800 p-4 rounded-3xl shadow-xl space-y-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              fetchLeads(selectedCountry, selectedCategory, customSearchQuery);
+            }}
+            className="flex flex-col sm:flex-row gap-2.5"
+          >
+            <div className="relative flex-1">
+              <Crosshair className="w-4 h-4 text-emerald-400 absolute left-3.5 top-3.5" />
+              <input
+                type="text"
+                value={customSearchQuery}
+                onChange={(e) => setCustomSearchQuery(e.target.value)}
+                placeholder="Tell the Radar what to scan... (e.g. 'Failing websites in Lagos', 'Dental clinics in Abuja', 'Remote Python jobs')..."
+                className="w-full bg-slate-950 border border-emerald-500/30 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 transition"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer disabled:opacity-50 shrink-0"
+            >
+              <RadarIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>{isLoading ? 'Scanning Target...' : 'Scan Anything'}</span>
+            </button>
+          </form>
+
+          {/* Preset Chips */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+            <span className="text-[11px] text-slate-400 font-semibold mr-1">Quick Scans:</span>
+            {quickScanPresets.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => {
+                  setCustomSearchQuery(preset.query);
+                  fetchLeads(selectedCountry, selectedCategory, preset.query);
+                }}
+                className="text-[11px] px-2.5 py-1 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-emerald-300 transition cursor-pointer"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filter Controls Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl">
           {/* Category Tabs */}
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap text-xs font-semibold">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs font-semibold">
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
                 selectedCategory === 'all'
-                  ? 'bg-purple-600 text-white shadow-md'
+                  ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              All Leads ({leads.length})
+              All Radar Targets ({leads.length})
             </button>
             <button
               onClick={() => setSelectedCategory('website_fix')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
                 selectedCategory === 'website_fix'
                   ? 'bg-rose-600 text-white shadow-md'
                   : 'text-rose-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Websites Needing Fix</span>
+              <span>Failing Websites ({failingWebsitesCount})</span>
             </button>
             <button
               onClick={() => setSelectedCategory('online_help')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
                 selectedCategory === 'online_help'
                   ? 'bg-amber-600 text-white shadow-md'
                   : 'text-amber-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Urgent Online Help</span>
+              <span>Urgent Online Help ({urgentHelpCount})</span>
             </button>
             <button
               onClick={() => setSelectedCategory('remote_job')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
                 selectedCategory === 'remote_job'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-emerald-300 hover:text-white hover:bg-slate-800'
+                  ? 'bg-cyan-600 text-white shadow-md'
+                  : 'text-cyan-300 hover:text-white hover:bg-slate-800'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
-              <span>Remote Jobs</span>
+              <span>Remote Jobs ({remoteJobsCount})</span>
             </button>
           </div>
 
           {/* Location & Industry Filters */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Country Selector */}
-            <div className="flex items-center gap-1 bg-slate-950 border border-slate-700/80 rounded-xl px-2.5 py-1 text-xs">
-              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs">
+              <Globe className="w-3.5 h-3.5 text-emerald-400" />
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
@@ -278,13 +401,12 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
               </select>
             </div>
 
-            {/* Industry Selector */}
             <select
               value={selectedIndustry}
               onChange={(e) => setSelectedIndustry(e.target.value)}
               className="bg-slate-950 border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="all">All Industries</option>
+              <option value="all">All Sectors</option>
               <option value="Healthcare & Dental">Healthcare &amp; Dental</option>
               <option value="Real Estate & Hospitality">Real Estate &amp; Hotels</option>
               <option value="Logistics & Supply Chain">Logistics &amp; Transport</option>
@@ -295,50 +417,37 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
           </div>
         </div>
 
-        {/* Custom Scan Prompt Box */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            fetchLeads();
-          }}
-          className="flex gap-2"
-        >
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="text"
-              value={customSearchQuery}
-              onChange={(e) => setCustomSearchQuery(e.target.value)}
-              placeholder="Custom Scan (e.g. 'Private schools in Lagos needing websites' or 'Remote React roles for Nigerians')..."
-              className="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-          >
-            <span>Run Deep Scan</span>
-          </button>
-        </form>
-
-        {/* Leads Grid */}
+        {/* LOADING RADAR TELEMETRY STREAM */}
         {isLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center text-center space-y-3">
-            <div className="w-10 h-10 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-semibold text-purple-300">
-              Scanning online jobs, failing websites &amp; client directories in {selectedCountry}...
-            </p>
-            <p className="text-xs text-slate-500">
-              Analyzing broken mobile layouts, missing booking tools, and urgent remote positions.
-            </p>
+          <div className="py-16 flex flex-col items-center justify-center text-center space-y-4 bg-slate-900/40 border border-emerald-500/20 rounded-3xl p-8">
+            <div className="relative w-16 h-16 rounded-full bg-slate-950 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              <div className="absolute inset-0 rounded-full border border-emerald-400/30 animate-ping" />
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+            </div>
+
+            <div className="space-y-1.5 max-w-lg">
+              <p className="text-sm font-black text-emerald-400 tracking-wide font-mono">
+                {scanTelemetrySteps[scanStepIndex]}
+              </p>
+              <p className="text-xs text-slate-400">
+                Targeting: {customSearchQuery || `Commercial Ecosystem in ${selectedCountry}`}
+              </p>
+            </div>
+
+            {/* Simulated Radar Progress Bar */}
+            <div className="w-64 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300"
+                style={{ width: `${((scanStepIndex + 1) / scanTelemetrySteps.length) * 100}%` }}
+              />
+            </div>
           </div>
         ) : leads.length === 0 ? (
           <div className="py-16 text-center rounded-2xl bg-slate-900/40 border border-slate-800 p-8 space-y-3">
             <Building2 className="w-12 h-12 text-slate-600 mx-auto" />
-            <h3 className="text-base font-bold text-white">No Leads Found Matching Filters</h3>
+            <h3 className="text-base font-bold text-white">No Targets Detected</h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Try switching your country to Nigeria or Worldwide Remote, or clear custom filters.
+              The radar could not find targets for this specific filter. Try broadening the search query or switching regions.
             </p>
             <button
               onClick={() => {
@@ -346,48 +455,57 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                 setSelectedCategory('all');
                 setSelectedIndustry('all');
                 setCustomSearchQuery('');
+                fetchLeads('Nigeria', 'all', '');
               }}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
             >
-              Reset Filters
+              Reset to Full Nigeria Sweep
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          /* LEADS GRID CARDS - FULL SCREEN RESPONSIVE COVERAGE */
+          <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5 w-full">
             {leads.map((lead) => {
               const isSaved = savedLeadIds.includes(lead.id);
               const isWebsiteFix = lead.type === 'website_fix';
               const isOnlineHelp = lead.type === 'online_help';
               const isRemoteJob = lead.type === 'remote_job';
+              const whatsappLink = getWhatsAppLink(lead.contactPhoneOrWhatsApp, lead.businessName, lead.pitchAngle);
 
               return (
                 <div
                   key={lead.id}
-                  className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between space-y-4 shadow-lg group relative overflow-hidden"
+                  className="rounded-3xl p-5 bg-slate-900/90 border border-slate-800/90 hover:border-emerald-500/40 transition-all duration-200 flex flex-col justify-between space-y-4 shadow-xl group relative overflow-hidden"
                 >
                   <div>
                     {/* Top Type & Urgency Badges */}
                     <div className="flex items-center justify-between gap-2 mb-2.5">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {isWebsiteFix && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/60 flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/60 flex items-center gap-1 shadow-xs">
                             <AlertTriangle className="w-3 h-3 text-rose-400" />
                             <span>Failing Website (Needs Fix)</span>
                           </span>
                         )}
                         {isOnlineHelp && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/60 flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/60 flex items-center gap-1 shadow-xs">
                             <Zap className="w-3 h-3 text-amber-400" />
                             <span>Urgent Online Help</span>
                           </span>
                         )}
                         {isRemoteJob && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
-                            <Briefcase className="w-3 h-3 text-emerald-400" />
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 flex items-center gap-1 shadow-xs">
+                            <Briefcase className="w-3 h-3 text-cyan-400" />
                             <span>Remote Online Job</span>
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300">
+                        {lead.pageSpeedScore && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-950 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-mono shadow-xs">
+                            <Zap className="w-3 h-3 text-emerald-400" />
+                            <span>Speed: {lead.pageSpeedScore}</span>
+                          </span>
+                        )}
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300">
                           {lead.industry}
                         </span>
                       </div>
@@ -406,14 +524,14 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                     </div>
 
                     {/* Business / Job Title */}
-                    <h3 className="text-base font-bold text-white group-hover:text-purple-300 transition-colors leading-snug">
+                    <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-300 transition-colors leading-snug">
                       {lead.title}
                     </h3>
 
                     {/* Company Name & Location */}
                     <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 flex-wrap">
                       <span className="font-semibold text-slate-200 flex items-center gap-1">
-                        <Building2 className="w-3.5 h-3.5 text-purple-400" />
+                        <Building2 className="w-3.5 h-3.5 text-emerald-400" />
                         {lead.businessName}
                       </span>
                       <span className="flex items-center gap-1 text-slate-400">
@@ -422,9 +540,18 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                       </span>
                     </div>
 
+                    {/* Verified Exact Physical Street Address */}
+                    <div className="flex items-start gap-1.5 text-[11px] text-slate-300 mt-2 bg-slate-950/70 p-2 rounded-xl border border-slate-800/80">
+                      <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                      <div className="leading-tight">
+                        <span className="text-slate-400 font-semibold mr-1">Exact Address:</span>
+                        <span className="text-slate-200 font-medium">{lead.exactAddress || `${lead.city ? `${lead.city}, ` : ''}${lead.country}`}</span>
+                      </div>
+                    </div>
+
                     {/* Website URL & Status */}
                     {lead.websiteUrl && (
-                      <div className="mt-2.5 p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">
+                      <div className="mt-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
                         <div className="flex items-center gap-1.5 text-slate-300 truncate max-w-[280px]">
                           <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                           <span className="font-mono text-[11px] truncate">{lead.websiteUrl}</span>
@@ -433,46 +560,51 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                           href={lead.websiteUrl.startsWith('http') ? lead.websiteUrl : `https://${lead.websiteUrl}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-[11px] font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-0.5 shrink-0 ml-2"
+                          className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 shrink-0 ml-2"
                         >
-                          <span>Inspect</span>
+                          <span>Inspect Site</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
 
                     {/* Breakdown of why their website is failing / urgent problem */}
-                    <div className="mt-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs space-y-1.5">
+                    <div className="mt-3 p-3 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs space-y-1.5">
                       <div className="font-bold text-rose-300 flex items-center gap-1 text-[11px]">
                         <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                        <span>Identified Problem &amp; Revenue Risk:</span>
+                        <span>Radar Diagnostic (Problem &amp; Revenue Risk):</span>
                       </div>
-                      <p className="text-slate-300 text-[11px] leading-relaxed">
+                      <p className="text-slate-300 text-xs leading-relaxed">
                         {lead.issueOrNeed}
                       </p>
                     </div>
 
                     {/* Estimated Budget / Pay */}
-                    <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Estimated Budget / Salary:</span>
-                      <span className="font-extrabold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-800/40">
+                    <div className="mt-3 flex items-center justify-between text-xs p-2 rounded-xl bg-emerald-950/20 border border-emerald-500/20">
+                      <span className="text-slate-300 font-medium">Estimated Budget / Contract Value:</span>
+                      <span className="font-black text-emerald-300 text-xs sm:text-sm">
                         {lead.estimatedBudget}
                       </span>
                     </div>
 
                     {/* Contact Details Dossier */}
-                    <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs space-y-1">
-                      <div className="text-[11px] font-bold text-slate-400">Direct Contact Dossier:</div>
+                    <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs space-y-1.5">
+                      <div className="text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                        <span>Direct Decision Maker Dossier:</span>
+                        {lead.contactTitle && (
+                          <span className="text-[10px] text-emerald-400 font-mono hidden sm:inline">{lead.contactTitle}</span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {lead.contactPerson && (
-                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 text-[11px] font-medium">
-                            👤 {lead.contactPerson}
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 text-[11px] font-semibold">
+                            👤 {lead.contactPerson} {lead.contactTitle ? `(${lead.contactTitle})` : ''}
                           </span>
                         )}
                         {lead.contactEmail && (
                           <button
                             onClick={() => handleCopyContact(lead.contactEmail, `${lead.id}_email`)}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[11px] transition cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-[11px] transition cursor-pointer"
                             title="Click to copy email"
                           >
                             <Mail className="w-3 h-3 text-cyan-400" />
@@ -485,7 +617,7 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                           </button>
                         )}
                         {lead.contactPhoneOrWhatsApp && (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/40 text-emerald-300 text-[11px]">
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/40 text-emerald-300 text-[11px] font-medium font-mono">
                             <MessageCircle className="w-3 h-3 text-emerald-400" />
                             <span>{lead.contactPhoneOrWhatsApp}</span>
                           </div>
@@ -494,24 +626,38 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Actions Bar */}
+                  {/* Actions Bar with 1-Click WhatsApp, Email & Outreach Pitch */}
                   <div className="mt-4 pt-3 border-t border-slate-800 flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setActivePitchLead(lead)}
-                      className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                       <span>1-Click AI Outreach Pitch</span>
                     </button>
 
+                    {/* Direct WhatsApp Launch */}
+                    {whatsappLink && (
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1 shadow-sm"
+                        title="Chat on WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    )}
+
+                    {/* Direct Email Launch */}
                     {lead.contactEmail && (
                       <a
-                        href={`mailto:${lead.contactEmail}?subject=${encodeURIComponent(`Website Enhancement for ${lead.businessName}`)}&body=${encodeURIComponent(lead.pitchAngle)}`}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                        href={`mailto:${lead.contactEmail}?subject=${encodeURIComponent(`Website Enhancement & Performance Proposal for ${lead.businessName}`)}&body=${encodeURIComponent(lead.pitchAngle)}`}
+                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
                         title="Send Direct Email"
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="w-4 h-4" />
                       </a>
                     )}
                   </div>
@@ -522,69 +668,74 @@ export const JobLeadScannerView: React.FC<JobLeadScannerViewProps> = ({
         )}
       </div>
 
-      {/* 1-Click AI Pitch Modal */}
+      {/* PITCH MODAL */}
       {activePitchLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-xl bg-slate-900 border border-purple-500/40 rounded-3xl p-6 shadow-2xl space-y-4 text-slate-100 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setActivePitchLead(null)}
-              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>AI-Tailored Outreach Proposal</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-xl bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl text-slate-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <h3 className="font-extrabold text-white text-base">
+                  Cold Outreach Pitch for {activePitchLead.businessName}
+                </h3>
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Pitch Proposal for {activePitchLead.businessName}
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Targeting: {activePitchLead.contactPerson || 'Decision Maker'} ({activePitchLead.contactEmail || activePitchLead.contactPhoneOrWhatsApp})
-              </p>
+              <button
+                onClick={() => setActivePitchLead(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Generated Message (Ready to Email / WhatsApp):
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900 text-slate-200 leading-relaxed font-mono text-xs whitespace-pre-line border border-slate-800/80">
-                {`Subject: Quick question regarding ${activePitchLead.businessName}'s website\n\nDear ${activePitchLead.contactPerson || 'Team'},\n\nI was reviewing your online presence at ${activePitchLead.websiteUrl || activePitchLead.businessName} and noticed a critical issue affecting your client conversions: ${activePitchLead.issueOrNeed}.\n\nWhen prospective clients visit on mobile, this bug causes high bounce rates and lost bookings to your competitors.\n\nI specialize in rapid web fixes and redesigns for ${activePitchLead.industry} companies. I can resolve this issue, optimize your mobile speed, and install a direct booking/intake engine within 48 to 72 hours.\n\nWould you be open to a brief 5-minute chat or WhatsApp message this week to see how we can fix this?\n\nBest regards,\nTestimony Bassey`}
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1">
+              <div className="text-slate-400 font-semibold">Recipient:</div>
+              <div className="text-white font-bold">
+                {activePitchLead.contactPerson || activePitchLead.businessName} ({activePitchLead.contactEmail || activePitchLead.contactPhoneOrWhatsApp || 'General Contact'})
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300">
+                Tailored Outreach Pitch (Ready to Send):
+              </label>
+              <textarea
+                value={activePitchLead.pitchAngle}
+                onChange={(e) =>
+                  setActivePitchLead({ ...activePitchLead, pitchAngle: e.target.value })
+                }
+                rows={6}
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-emerald-400"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() =>
-                  handleCopyPitch(
-                    `Subject: Quick question regarding ${activePitchLead.businessName}'s website\n\nDear ${activePitchLead.contactPerson || 'Team'},\n\nI was reviewing your online presence at ${activePitchLead.websiteUrl || activePitchLead.businessName} and noticed a critical issue affecting your client conversions: ${activePitchLead.issueOrNeed}.\n\nWhen prospective clients visit on mobile, this bug causes high bounce rates and lost bookings to your competitors.\n\nI specialize in rapid web fixes and redesigns for ${activePitchLead.industry} companies. I can resolve this issue, optimize your mobile speed, and install a direct booking/intake engine within 48 to 72 hours.\n\nWould you be open to a brief 5-minute chat or WhatsApp message this week to see how we can fix this?\n\nBest regards,\nTestimony Bassey`
-                  )
-                }
-                className="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow"
+                onClick={() => handleCopyPitch(activePitchLead.pitchAngle)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5"
               >
                 {copiedPitch ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-300" />
-                    <span>Pitch Copied to Clipboard!</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4" />
-                    <span>Copy Outreach Pitch</span>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Pitch</span>
                   </>
                 )}
               </button>
 
-              {activePitchLead.contactEmail && (
+              {getWhatsAppLink(activePitchLead.contactPhoneOrWhatsApp, activePitchLead.businessName, activePitchLead.pitchAngle) && (
                 <a
-                  href={`mailto:${activePitchLead.contactEmail}?subject=${encodeURIComponent(`Website enhancement for ${activePitchLead.businessName}`)}&body=${encodeURIComponent(activePitchLead.pitchAngle)}`}
-                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5"
+                  href={getWhatsAppLink(activePitchLead.contactPhoneOrWhatsApp, activePitchLead.businessName, activePitchLead.pitchAngle)!}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Send via Email</span>
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Send on WhatsApp</span>
                 </a>
               )}
             </div>

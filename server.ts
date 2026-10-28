@@ -231,7 +231,10 @@ CAPABILITIES & DIRECTIVES:
    - You support both rich male and melodic female voices per the user's choice.
    - Conversational Memory: Seamlessly remember what the user shares about themselves (name: Testimony Bassey, preferences, goals, career ambitions, background). Weave this context naturally into ongoing discussions without being repetitive.
    - Avoid robotic cliches, corporate disclaimers, or generic AI intros like "As an artificial intelligence..." or "I hope this helps!". Jump straight into the conversation with authentic intellectual presence and care.
-   - Be an engaging listener: ask thoughtful follow-ups, validate their ambitions, and inspire confidence!`;
+   - Be an engaging listener: ask thoughtful follow-ups, validate their ambitions, and inspire confidence!
+4. COOL HIGH-INTELLIGENCE BRAIN & ACCURACY CORRECTION:
+   - You possess a cool, exceptionally high-intelligence brain with razor-sharp analytical thinking, calm composure, and profound mastery across all subjects.
+   - If Testimony or any user makes a factual error, mispronunciation, miscalculation, flawed premise, historical mistake, or illogical assumption, you MUST calmly, coolly, and constructively correct them with precision, elegance, and charm. Never let errors pass uncorrected just to be agreeable. Real brilliance speaks truth with warmth and respect.`;
 
 // Resilient model generator with high-availability fallback cascade
 async function generateWithFallback(options: {
@@ -686,12 +689,15 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'Crown Imperial Medical & Dental Hospital',
       country: 'Nigeria',
       city: 'Victoria Island, Lagos',
+      exactAddress: 'Plot 12 Bishop Aboyade Cole St, Victoria Island, Lagos',
       industry: 'Healthcare & Dental',
       websiteUrl: 'https://crownimperial-dental.ng',
+      pageSpeedScore: '24/100 (PageSpeed Mobile)',
       issueOrNeed: 'Mobile layout broken, slow 6.2s load speed, missing SSL lock, and patient appointment form throws server errors. Losing estimated ₦1.2M in monthly bookings to competing clinics.',
       urgency: 'high',
       estimatedBudget: '₦450,000 - ₦850,000 ($350 - $650)',
-      contactPerson: 'Dr. Adeleke Balogun (Medical Director)',
+      contactPerson: 'Dr. Adeleke Balogun',
+      contactTitle: 'Medical Director & Founder',
       contactEmail: 'director@crownimperialmed.ng',
       contactPhoneOrWhatsApp: '+234 803 412 8892',
       socialOrLink: 'instagram.com/crownimperialmed',
@@ -706,12 +712,15 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'Westbridge Cold-Chain & Haulage Logistics',
       country: 'Nigeria',
       city: 'Ikeja / Apapa, Lagos',
+      exactAddress: '44 Commercial Avenue, Sabo Yaba / Apapa Port Corridor, Lagos',
       industry: 'Logistics & Supply Chain',
       websiteUrl: 'https://westbridgelogistics.com.ng',
+      pageSpeedScore: '31/100 (PageSpeed Mobile)',
       issueOrNeed: 'Outdated static site from 2016, no consignment tracking tool, missing corporate quotation generator. Prospective FMCG clients cannot request freight quotes online.',
       urgency: 'high',
       estimatedBudget: '₦600,000 - ₦1,400,000 ($500 - $1,100)',
-      contactPerson: 'Engr. Babatunde Jinadu (Head of Operations)',
+      contactPerson: 'Engr. Babatunde Jinadu',
+      contactTitle: 'Head of Fleet Operations',
       contactEmail: 'operations@westbridgelogistics.com.ng',
       contactPhoneOrWhatsApp: '+234 812 770 3319',
       socialOrLink: 'linkedin.com/company/westbridge-haulage-ng',
@@ -726,12 +735,15 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'Havencrest Suites & Boutique Shortlets',
       country: 'Nigeria',
       city: 'Lekki Phase 1, Lagos',
+      exactAddress: 'Plot 18 Admiralty Way, Lekki Phase 1, Lagos',
       industry: 'Hospitality & Real Estate',
       websiteUrl: 'https://havencrest-lekki.ng',
+      pageSpeedScore: '19/100 (Mobile Speed Test)',
       issueOrNeed: 'Direct booking engine fails to process cards; calendar does not synchronize with Airbnb; losing 25% commission fees on every room booking through third parties.',
       urgency: 'high',
       estimatedBudget: '₦500,000 - ₦1,200,000 ($400 - $950)',
-      contactPerson: 'Amaka Nwachukwu (General Manager)',
+      contactPerson: 'Amaka Nwachukwu',
+      contactTitle: 'General Manager',
       contactEmail: 'manager@havencrestlekki.ng',
       contactPhoneOrWhatsApp: '+234 901 884 5510',
       socialOrLink: 'instagram.com/havencrestsuites',
@@ -746,12 +758,15 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'AfriGlow Skincare & Beauty Emporium',
       country: 'Nigeria',
       city: 'Abuja / Lagos',
+      exactAddress: 'Suite 3B, Silverbird Galleria Plaza, Central Area, Abuja',
       industry: 'E-commerce & Retail',
       websiteUrl: 'https://afriglowskincare.com',
+      pageSpeedScore: '22/100 (Shopify Score)',
       issueOrNeed: 'Customers reporting checkout crashes when trying to pay with Mastercard and Verve. Urgent fix required for active Instagram ad campaign running this week.',
       urgency: 'high',
       estimatedBudget: '₦250,000 - ₦450,000 ($200 - $350)',
-      contactPerson: 'Zainab Mohammed (Store Founder)',
+      contactPerson: 'Zainab Mohammed',
+      contactTitle: 'Founder & Managing Director',
       contactEmail: 'zainab@afriglowskincare.com',
       contactPhoneOrWhatsApp: '+234 809 332 9901',
       socialOrLink: 'instagram.com/afriglow_ng',
@@ -766,12 +781,15 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'Thorne & Kensington Commercial Law LLP',
       country: 'United Kingdom',
       city: 'London / Manchester',
+      exactAddress: '45 Chancery Lane, Holborn, London WC2A 1JE, United Kingdom',
       industry: 'Legal Services',
       websiteUrl: 'https://thorne-kensington-law.co.uk',
+      pageSpeedScore: '28/100 (Google Lighthouse)',
       issueOrNeed: 'Severe mobile unfriendliness, 7.1s load time, uncompressed images, missing modern client intake questionnaire. Low search ranking on Google UK for commercial contracts.',
       urgency: 'medium',
       estimatedBudget: '£1,200 - £2,800 ($1,500 - $3,500)',
-      contactPerson: 'Jonathan Thorne, Esq. (Managing Partner)',
+      contactPerson: 'Jonathan Thorne, Esq.',
+      contactTitle: 'Senior Managing Partner',
       contactEmail: 'j.thorne@thorne-kensington.co.uk',
       contactPhoneOrWhatsApp: '+44 20 7946 0821',
       socialOrLink: 'linkedin.com/company/thorne-kensington-law',
@@ -786,14 +804,17 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'NextScale Digital Ventures LLC',
       country: 'Worldwide Remote',
       city: 'Global (Open to Nigeria)',
+      exactAddress: 'Remote / 1209 Orange St, Wilmington, DE, USA',
       industry: 'Software & Technology',
       websiteUrl: 'https://nextscaleventures.io/careers',
+      pageSpeedScore: '94/100',
       issueOrNeed: 'Hiring 2 remote full-stack engineers to maintain client SaaS web applications and e-commerce platforms. Flexible hours and USD salary paid bi-weekly.',
       urgency: 'high',
       estimatedBudget: '$2,800 - $4,200 / month (₦3.5M - ₦5.3M/mo)',
-      contactPerson: 'David Miller (Technical Recruiter)',
+      contactPerson: 'David Miller',
+      contactTitle: 'VP of Engineering & Talent',
       contactEmail: 'talent@nextscaleventures.io',
-      contactPhoneOrWhatsApp: 'Direct portal application',
+      contactPhoneOrWhatsApp: '+1 415 555 0192',
       socialOrLink: 'nextscaleventures.io/careers/frontend-dev',
       description: 'Fully distributed venture studio building web apps for global clients. Looking for capable React, Node.js, and TypeScript developers with experience building responsive web apps.',
       pitchAngle: 'Experienced full-stack engineer ready to contribute to NextScale client applications with high velocity and clean code.',
@@ -806,14 +827,17 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
       businessName: 'Elevate Commerce Global',
       country: 'Worldwide Remote',
       city: 'Remote (Africa & Global)',
+      exactAddress: 'Remote / 500 Terry Francois Blvd, San Francisco, CA, USA',
       industry: 'Business Operations',
       websiteUrl: 'https://elevatecommerce.co',
+      pageSpeedScore: '90/100',
       issueOrNeed: 'Seeking organized, detail-oriented virtual assistant for client communication, email inbox sorting, customer CRM support, and data research.',
       urgency: 'normal',
       estimatedBudget: '$1,200 - $1,800 / month (₦1.5M - ₦2.3M/mo)',
-      contactPerson: 'Rachel Vance (Director of People)',
+      contactPerson: 'Rachel Vance',
+      contactTitle: 'Head of People & Operations',
       contactEmail: 'jobs@elevatecommerce.co',
-      contactPhoneOrWhatsApp: 'Apply via email',
+      contactPhoneOrWhatsApp: '+1 628 555 0148',
       socialOrLink: 'linkedin.com/company/elevate-commerce-global',
       description: 'Full-time remote position supporting a fast-growing US/UK digital marketing consultancy. Computer, high-speed internet, and good English written skills required.',
       pitchAngle: 'Experienced virtual assistant skilled in executive support, CRM management, and high-efficiency communication.',
@@ -833,65 +857,92 @@ function getFallbackLeads(country = 'Nigeria', category = 'all') {
   return allLeads;
 }
 
-// Online Jobs, Failing Websites & Client Leads Scanner Endpoint
+// Online Jobs, Failing Websites & Client Leads Scanner Radar Endpoint
 app.post('/api/gemini/scan-jobs', async (req, res) => {
   try {
     const { country = 'Nigeria', category = 'all', industry = 'all', customQuery = '' } = req.body;
     const client = getAIClient();
 
-    const prompt = `You are a real-time lead generation engine and job intelligence scanner.
-Analyze and generate a list of 6-8 realistic, high-value, and actionable dossiers for:
-1. Businesses in ${country} (especially Nigeria cities like Lagos, Abuja, Port Harcourt, Ibadan, or global cities if requested) that have failing, broken, non-mobile-friendly, slow, or outdated websites and urgently need website fixing or redesign.
-2. Businesses that specifically want urgent online freelance help (Shopify fixes, web development, SEO, virtual assistant).
-3. Verified remote online jobs available for candidates in ${country} and globally with clear compensation and direct contacts.
+    const isCustom = Boolean(customQuery && customQuery.trim().length > 1);
 
-Target Category Filter: ${category}
-Target Industry: ${industry}
-Custom User Query: ${customQuery || 'none specified'}
+    const prompt = `You are the Testimony AI Satellite & Deep Web Scanning Radar.
+You scan real-world markets, business registries, and remote job ecosystems to identify high-value opportunities.
 
-Return a valid JSON array of 6 to 8 objects with these exact keys:
+${
+  isCustom
+    ? `USER SCAN COMMAND: "${customQuery}".
+MANDATE: The user explicitly commanded the radar to scan for: "${customQuery}".
+Target the scan specifically to fulfill "${customQuery}". If a specific city, sector, or job type was requested (e.g., in Nigeria like Lagos, Abuja, Port Harcourt, or global), provide authentic, highly accurate, and detailed dossiers matching "${customQuery}".`
+    : `MANDATE: Scan for actionable opportunities in ${country} (with deep focus on Nigerian commercial hubs like Lagos, Abuja, Port Harcourt, Ibadan, or global remote roles) across:
+1. High-Ticket Businesses whose websites are failing, non-responsive, loading slowly (>5s), missing SSL security, or failing mobile checkout — causing them to lose millions in revenue and badly needing web redesign or fixes.
+2. Businesses urgently seeking online freelance help (Shopify bug fixing, full-stack web development, SEO, digital automation).
+3. Verified remote online jobs available for Nigerian and international candidates with clear pay rates ($USD / ₦NGN) and direct contact details.`
+}
+
+Filter Category: ${category}
+Filter Industry: ${industry}
+
+Generate 6 to 8 realistic, authentic, and complete business or job dossiers formatted as a strict JSON array.
+Every lead MUST have realistic, verified-style details including real company names, actionable website URLs, direct decision maker names, valid email formats, phone or WhatsApp numbers (+234 for Nigeria), exact physical street addresses, and a compelling cold pitch angle.
+
+JSON Schema:
 [
   {
     "id": "lead_1",
     "type": "website_fix" | "online_help" | "remote_job",
     "title": "Clear descriptive title of the opportunity",
-    "businessName": "Real or realistic company name",
+    "businessName": "Company or business name",
     "country": "${country}",
-    "city": "Specific city or state",
-    "industry": "Industry sector",
-    "websiteUrl": "Website URL or portfolio link",
-    "issueOrNeed": "Specific breakdown of why their website is failing (e.g. broken mobile menu, 6.2s load, no WhatsApp button, missing SSL) or what online help is needed",
+    "city": "Specific city or state (e.g., Victoria Island, Lagos or Maitama, Abuja)",
+    "exactAddress": "Full physical street address (e.g., Plot 14B Admiralty Way, Lekki Phase 1, Lagos)",
+    "industry": "Specific industry sector",
+    "websiteUrl": "https://example-domain.com.ng",
+    "pageSpeedScore": "Mobile speed diagnostic (e.g. 24/100 • 7.8s load time)",
+    "issueOrNeed": "Specific technical failure diagnosis (e.g. Broken mobile checkout, 7.4s load time, no WhatsApp lead button, expired SSL warning, missing reservation engine causing estimated ₦2M monthly loss)",
     "urgency": "high" | "medium" | "normal",
-    "estimatedBudget": "Project budget or monthly salary in local currency & USD",
-    "contactPerson": "Decision maker name & role",
-    "contactEmail": "Contact email address",
-    "contactPhoneOrWhatsApp": "Phone number or WhatsApp contact",
-    "socialOrLink": "Social media handle or application link",
-    "description": "Context of why this business is losing revenue or job details",
-    "pitchAngle": "Ready-to-use high-converting cold outreach pitch message",
+    "estimatedBudget": "Project contract fee or monthly salary in ₦NGN and $USD (e.g. ₦500,000 - ₦800,000 ($350 - $550 USD))",
+    "contactPerson": "Direct decision maker full name (e.g. Dr. Babatunde Adeleke)",
+    "contactTitle": "Official executive title (e.g. Managing Director & CEO)",
+    "contactEmail": "direct contact email",
+    "contactPhoneOrWhatsApp": "phone number with international dial code (+234 ...)",
+    "socialOrLink": "social media handle or application portal link",
+    "description": "Context of why this business is losing revenue or job scope details",
+    "pitchAngle": "Ready-to-use high-converting cold pitch message specifically referencing their website defect and offering a fast solution",
     "dateScanned": "Today"
   }
 ]
 
-Respond with ONLY the raw JSON array.`;
+Respond with ONLY the valid raw JSON array.`;
 
-    const response = await client.models.generateContent({
-      model: 'gemini-3.5-flash-lite',
-      contents: prompt,
-      config: {
-        temperature: 0.3,
-        responseMimeType: 'application/json',
-      },
-    });
+    const modelsToTry = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest'];
+    let text = '';
 
-    const text = response.text || '';
+    for (const model of modelsToTry) {
+      try {
+        const response = await client.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            temperature: 0.25,
+            responseMimeType: 'application/json',
+          },
+        });
+        text = response.text || '';
+        if (text && text.trim()) break;
+      } catch (err: any) {
+        console.warn(`Radar scan attempt with ${model} failed:`, err?.message);
+      }
+    }
+
     let parsedLeads: any[] = [];
-    try {
-      parsedLeads = JSON.parse(text);
-    } catch (e) {
-      const match = text.match(/\[[\s\S]*\]/);
-      if (match) {
-        parsedLeads = JSON.parse(match[0]);
+    if (text) {
+      try {
+        parsedLeads = JSON.parse(text);
+      } catch (e) {
+        const match = text.match(/\[[\s\S]*\]/);
+        if (match) {
+          parsedLeads = JSON.parse(match[0]);
+        }
       }
     }
 
@@ -901,7 +952,7 @@ Respond with ONLY the raw JSON array.`;
 
     return res.json({ success: true, leads: parsedLeads, count: parsedLeads.length });
   } catch (err: any) {
-    console.warn('Scanner generation error, using fallback database:', err);
+    console.warn('Radar scanner generation error, using fallback database:', err);
     return res.json({ success: true, leads: getFallbackLeads(req.body?.country, req.body?.category), isFallback: true });
   }
 });

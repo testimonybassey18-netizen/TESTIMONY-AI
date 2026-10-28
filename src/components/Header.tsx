@@ -32,8 +32,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const toolTitles: Record<ActiveTool, string> = {
     chat: 'AI Chat Assistant',
-    live_chat: 'Live 1-on-1 Discussion (Male/Female Voice)',
-    job_scanner: 'Online Jobs & Client Lead Scanner',
+    live_chat: 'Live Chat (Instant Voice)',
+    job_scanner: 'Market Intelligence & Job Radar',
     assignment: 'AI Assignment Solver',
     cv_builder: 'AI CV & Resume Builder',
     translator: 'AI Multilingual Translator',

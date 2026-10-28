@@ -57,8 +57,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const primaryTools: Array<{ id: ActiveTool; name: string; icon: React.ElementType; badge?: string; desc: string }> = [
     { id: 'chat', name: 'AI Chat Assistant', icon: MessageSquare, desc: 'Conversations & brainstorming' },
-    { id: 'live_chat', name: 'Live 1-on-1 Chat', icon: Radio, badge: 'Voice (M/F)', desc: 'Real-time human discussion' },
-    { id: 'job_scanner', name: 'Jobs & Client Lead Scanner', icon: Search, badge: 'NG & Global', desc: 'Failing webs & remote jobs' },
+    { id: 'live_chat', name: 'Live Chat', icon: Radio, badge: 'Voice (M/F)', desc: 'Real-time spoken discussion' },
+    { id: 'job_scanner', name: 'Jobs & Client Lead Radar', icon: Search, badge: 'NG & Global', desc: 'Failing webs & remote jobs' },
     { id: 'assignment', name: 'Assignment Solver', icon: GraduationCap, badge: 'Study', desc: 'School & exams' },
     { id: 'cv_builder', name: 'CV & Resume Builder', icon: FileText, badge: 'Career', desc: 'ATS resume & PDF' },
     { id: 'translator', name: 'Multilingual Translator', icon: Languages, badge: 'Global', desc: 'Yoruba, French, Spanish...' },

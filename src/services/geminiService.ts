@@ -483,12 +483,15 @@ export interface ScannedJobLead {
   businessName: string;
   country: string;
   city?: string;
+  exactAddress?: string;
   industry: string;
   websiteUrl?: string;
   issueOrNeed: string;
+  pageSpeedScore?: string;
   urgency: 'high' | 'medium' | 'normal';
   estimatedBudget: string;
   contactPerson: string;
+  contactTitle?: string;
   contactEmail: string;
   contactPhoneOrWhatsApp?: string;
   socialOrLink?: string;
